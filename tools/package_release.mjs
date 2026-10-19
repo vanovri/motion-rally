@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const VERSION = "0.1.0";
+const VERSION = "0.2.0";
 const zipPath = resolve(root, "dist", `motion-rally-v${VERSION}.zip`);
 const sumsPath = resolve(root, "dist", `SHA256SUMS-v${VERSION}.txt`);
 
@@ -15,7 +15,7 @@ const FILES = [
   ".gitignore",
   "LICENSE",
   "README.md",
-  "docs/browser-qa.json",
+  "docs/browser-qa.json", "docs/audit-controller.png", "docs/audit-court.png", ".github/workflows/verify.yml",
   "docs/preview-controller.png",
   "docs/preview-host.png",
   "package-lock.json",

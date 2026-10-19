@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto';
 // Message schema and range checks for the rally bridge.
 // Every rejected message carries a machine-readable reason; nothing is coerced.
 
@@ -39,7 +40,7 @@ export function sanitizeName(value) {
 }
 
 export function roomCode() {
-  return String(Math.floor(1000 + Math.random() * 9000));
+  return String(randomInt(1000, 10000));
 }
 
 export function decode(raw) {
@@ -78,6 +79,10 @@ export function validateHello(message) {
     }
     hello.room = message.room;
     hello.slot = message.slot;
+    if (typeof message.token !== 'string' || !/^[0-9a-f]{32}$/.test(message.token)) {
+      throw new ProtocolError('bad_token', 'pairing token required');
+    }
+    hello.token = message.token;
   }
   return hello;
 }
@@ -91,6 +96,7 @@ export function validateInput(message) {
     gamma: finiteNumber(message.gamma, "gamma", -LIMITS.maxAngle, LIMITS.maxAngle),
     alpha: finiteNumber(message.alpha ?? 0, "alpha", -LIMITS.maxAngle, LIMITS.maxAngle),
   };
+  if (!Number.isSafeInteger(message.seq)) throw new ProtocolError('bad_seq', 'sequence must be an integer');
   return input;
 }
 
@@ -118,7 +124,10 @@ export function normalizeMotion(input, calibration, previous) {
   const x = Math.max(-1, Math.min(1, gammaDelta / 45));
   let swing = 0;
   if (previous && Number.isFinite(previous.beta)) {
-    const rate = Math.abs(input.beta - previous.beta) / 0.045; // deg per 45 ms window
+    const elapsed = Number.isFinite(input.timestamp) && Number.isFinite(previous.timestamp) ? (input.timestamp - previous.timestamp) / 1000 : 0.045;
+    const dt = Math.max(0.005, Math.min(0.25, elapsed));
+    const delta = ((input.beta - previous.beta + 540) % 360) - 180;
+    const rate = Math.abs(delta) / dt;
     swing = Math.max(0, Math.min(1, rate / 90));
   }
   return { x, swing, betaDelta: Math.max(-180, Math.min(180, betaDelta)) };

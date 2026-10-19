@@ -54,6 +54,10 @@
     if (message.type === "room") {
       state.room = message.code;
       els.room.textContent = message.code;
+      const link = document.getElementById('pairing-link');
+      link.href = `/controller#room=${message.code}&token=${message.token}`;
+      link.textContent = 'Open paired controller';
+      document.getElementById('pairing-token').textContent = message.token;
     } else if (message.type === "state") {
       applyState(message);
     } else if (message.type === "presence") {
@@ -61,7 +65,7 @@
     } else if (message.type === "commentary") {
       addCommentary(message.text);
     } else if (message.type === "commentary_audio") {
-      setBadge(els.tts, "voice commentary", "ok");
+      setBadge(els.tts, "audio received (playback not enabled)", "ok");
     } else if (message.type === "closed") {
       setBadge(els.connection, "room closed", "bad");
     }

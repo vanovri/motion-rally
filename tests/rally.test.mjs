@@ -180,7 +180,8 @@ test("commentary calls the provider only when a key is configured", async () => 
     calls += 1;
     body = JSON.parse(options.body);
     assert.match(url, /generativelanguage\.googleapis\.com/);
-    assert.match(url, /key=test-key/);
+    assert.equal(options.headers['x-goog-api-key'], 'test-key');
+    assert.ok(!url.includes('test-key'));
     return {
       ok: true,
       async json() {
@@ -188,7 +189,7 @@ test("commentary calls the provider only when a key is configured", async () => 
       },
     };
   };
-  const commentary = createCommentary({ apiKey: "test-key", fetchImpl });
+  const commentary = createCommentary({ apiKey: "test-key", enabled: true, fetchImpl });
   assert.equal(commentary.enabled, true);
   const result = await commentary.speak("Poin untuk pemain 1.");
   assert.equal(calls, 1);
@@ -235,14 +236,14 @@ test("rooms pair two controllers and reject a duplicate slot", async (t) => {
 
   const phone1 = connect(server.url);
   await phone1.opened;
-  phone1.send({ type: "hello", role: "controller", room: room.code, slot: 1, name: "phone-1" });
+  phone1.send({ type: "hello", role: "controller", room: room.code, token: room.token, slot: 1, name: "phone-1" });
   const joined1 = await phone1.waitFor("room");
   assert.equal(joined1.slot, 1);
   await host.waitFor("presence");
 
   const duplicate = connect(server.url);
   await duplicate.opened;
-  duplicate.send({ type: "hello", role: "controller", room: room.code, slot: 1, name: "phone-dup" });
+  duplicate.send({ type: "hello", role: "controller", room: room.code, token: room.token, slot: 1, name: "phone-dup" });
   const error = await duplicate.waitFor("error");
   assert.equal(error.code, "slot_taken");
   duplicate.socket.close();
@@ -269,7 +270,7 @@ test("controller disconnect updates presence, host close closes room", async (t)
 
   const phone = connect(server.url);
   await phone.opened;
-  phone.send({ type: "hello", role: "controller", room: room.code, slot: 2, name: "phone-2" });
+  phone.send({ type: "hello", role: "controller", room: room.code, token: room.token, slot: 2, name: "phone-2" });
   await phone.waitFor("room");
   const presence = await host.waitFor("presence");
   assert.equal(presence.slots.find((slot) => slot.slot === 2).connected, true);
@@ -295,7 +296,7 @@ test("invalid controller messages are rejected without crashing", async (t) => {
 
   const phone = connect(server.url);
   await phone.opened;
-  phone.send({ type: "hello", role: "controller", room: room.code, slot: 1, name: "phone-1" });
+  phone.send({ type: "hello", role: "controller", room: room.code, token: room.token, slot: 1, name: "phone-1" });
   await phone.waitFor("room");
   phone.send({ type: "input", seq: 1, timestamp: 1, beta: NaN, gamma: 0, alpha: 0 });
   phone.socket.send(JSON.stringify({ v: 1, type: "input", seq: 1, timestamp: 1, beta: "nan", gamma: 0 }));
@@ -319,4 +320,51 @@ test("static files, health endpoint and traversal guard", async (t) => {
   assert.equal(missing.status, 404);
   const traversal = await fetch(`${server.url}/..%2Fserver%2Fgame.mjs`);
   assert.ok([403, 404].includes(traversal.status));
+});
+
+
+test("ambient credentials never enable TTS and explicit opt-in is required", async () => {
+  let calls = 0;
+  const commentary = createCommentary({apiKey: "synthetic-key", fetchImpl: async () => { calls++; }});
+  assert.equal(commentary.enabled, false);
+  await commentary.speak("synthetic test");
+  assert.equal(calls, 0);
+});
+
+test("pairing token and integer sequences are required", () => {
+  assert.throws(() => validateHello({type:"hello", role:"controller", room:"1234", slot:1}), /token/);
+  assert.throws(() => validateInput({type:"input",seq:1.5,timestamp:1,beta:0,gamma:0}), /integer/);
+});
+
+test("wrong token cannot join a room or leak its token via health", async (t) => {
+  const server = await startServer({port:0}); t.after(() => server.close());
+  const host = connect(server.url); await host.opened;
+  host.send({type:"hello",role:"host"});
+  const room = await host.waitFor("room");
+  assert.match(room.token, /^[0-9a-f]{32}$/);
+  const phone = connect(server.url); await phone.opened;
+  phone.send({type:"hello",role:"controller",room:room.code,token:"0".repeat(32),slot:1});
+  assert.equal((await phone.waitFor("error")).code,"bad_token");
+  assert.ok(!(await (await fetch(`${server.url}/healthz`)).text()).includes(room.token));
+});
+
+test("cross-origin websocket is rejected", async(t) => {
+  const server = await startServer({port:0}); t.after(() => server.close());
+  await new Promise(resolve => {
+    const socket = new WebSocket(server.url.replace('http','ws')+'/ws', {origin:'https://unrelated.example'});
+    socket.once('open', () => assert.fail('cross-origin websocket unexpectedly opened'));
+    socket.once('error', resolve);
+  });
+});
+
+test("motion timestamps must increase without corrupting accepted state", async(t) => {
+  const server = await startServer({port:0}); t.after(() => server.close());
+  const host = connect(server.url); await host.opened; host.send({type:'hello',role:'host'});
+  const room = await host.waitFor('room');
+  const phone = connect(server.url); await phone.opened;
+  phone.send({type:'hello',role:'controller',room:room.code,token:room.token,slot:1});
+  await phone.waitFor('room');
+  phone.send({type:'input',seq:1,timestamp:100,beta:0,gamma:0});
+  phone.send({type:'input',seq:2,timestamp:99,beta:0,gamma:0});
+  assert.equal((await phone.waitFor('error')).code,'stale_timestamp');
 });

@@ -23,6 +23,10 @@
         <input id="room-input" inputmode="numeric" pattern="\d{4}" maxlength="4" placeholder="1234" autocomplete="off" required />
       </div>
       <div class="field">
+        <label for="token-input">Pairing token from the court</label>
+        <input id="token-input" pattern="[0-9a-f]{32}" maxlength="32" autocomplete="off" required />
+      </div>
+      <div class="field">
         <label for="slot-select">Player slot</label>
         <select id="slot-select">
           <option value="1">Player 1 (near side)</option>

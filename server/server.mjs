@@ -1,5 +1,6 @@
 // HTTP + WebSocket bridge: rooms, pairing, validated inputs, fixed-step match loop.
 import { createServer as createHttpServer } from "node:http";
+import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { readFile, stat } from "node:fs/promises";
 import { extname, join, normalize, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -30,6 +31,7 @@ const CONTENT_TYPES = {
 class Room {
   constructor(code, host, commentary, onClose, onSend) {
     this.code = code;
+    this.token = randomBytes(16).toString('hex');
     this.host = host;
     this.controllers = { 1: null, 2: null };
     this.match = new Match();
@@ -209,6 +211,10 @@ export async function startServer({ port = 0, host = "127.0.0.1", commentary = n
       socket.destroy();
       return;
     }
+    if (request.headers.origin && ![`http://${request.headers.host}`, `https://${request.headers.host}`].includes(request.headers.origin)) {
+      socket.destroy();
+      return;
+    }
     if (wss.clients.size >= MAX_CONNECTIONS) {
       socket.destroy();
       return;
@@ -260,7 +266,7 @@ export async function startServer({ port = 0, host = "127.0.0.1", commentary = n
     stats.connections += 1;
     const connection = {
       socket, role: null, name: null, room: null, slot: null,
-      calibration: null, previousBeta: null, lastSeq: -1,
+      calibration: null, previousBeta: null, previousTimestamp: null, lastSeq: -1,
       lastInputAt: 0, windowStart: Date.now(), windowCount: 0,
     };
     const helloTimer = setTimeout(() => socket.close(1008, "hello timeout"), 5000);
@@ -282,11 +288,12 @@ export async function startServer({ port = 0, host = "127.0.0.1", commentary = n
             connection.room = room;
             connection.hostSocket = true;
             rooms.set(code, room);
-            send(connection, { type: "room", code, role: "host", slots: room.slots(), snapshot: room.match.snapshot() });
+            send(connection, { type: "room", code, token: room.token, role: "host", slots: room.slots(), snapshot: room.match.snapshot() });
             room.match.stats = room.match.stats ?? {};
           } else {
             const room = rooms.get(hello.room);
             if (!room) throw new ProtocolError("no_room", "room not found");
+            if (!timingSafeEqual(Buffer.from(hello.token), Buffer.from(room.token))) throw new ProtocolError('bad_token', 'pairing token does not match');
             room.attach(hello.slot, connection);
             send(connection, { type: "room", code: room.code, role: "controller", slot: hello.slot, slots: room.slots() });
             send(connection, { type: "state", ...room.match.snapshot() });
@@ -313,9 +320,11 @@ export async function startServer({ port = 0, host = "127.0.0.1", commentary = n
           if (message.type === "input") {
             const input = validateInput(message);
             if (input.seq <= connection.lastSeq) throw new ProtocolError("stale_seq", "sequence must increase");
+            if (connection.previousTimestamp !== null && input.timestamp <= connection.previousTimestamp) throw new ProtocolError('stale_timestamp', 'timestamp must increase');
             connection.lastSeq = input.seq;
-            const normalized = normalizeMotion(input, connection.calibration, { beta: connection.previousBeta });
+            const normalized = normalizeMotion(input, connection.calibration, { beta: connection.previousBeta, timestamp: connection.previousTimestamp });
             connection.previousBeta = input.beta;
+            connection.previousTimestamp = input.timestamp;
             connection.lastInputAt = now;
             connection.room.match.setInput(connection.slot, {
               x: normalized.x, swing: normalized.swing, timestamp: now, seq: input.seq,
@@ -407,8 +416,9 @@ export async function startServer({ port = 0, host = "127.0.0.1", commentary = n
 
 if (process.argv[1] && process.argv[1].endsWith("server.mjs")) {
   const { createCommentary } = await import("./commentary.mjs");
-  const commentary = createCommentary();
-  const server = await startServer({ port: Number(process.env.PORT ?? 8765), host: process.env.HOST ?? "0.0.0.0", commentary });
+  const commentary = createCommentary({ enabled: process.env.ENABLE_TTS === '1', apiKey: process.env.GEMINI_API_KEY,
+                                       model: process.env.GEMINI_TTS_MODEL ?? 'gemini-3.8-flash-tts' });
+  const server = await startServer({ port: Number(process.env.PORT ?? 8765), host: process.env.HOST ?? "127.0.0.1", commentary });
   console.log(`motion rally bridge on ${server.url}`);
   console.log(`commentary: ${commentary.enabled ? "enabled" : `disabled (${commentary.reason})`}`);
 }

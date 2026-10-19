@@ -13,6 +13,7 @@
     context: document.getElementById("context"),
     form: document.getElementById("join-form"),
     room: document.getElementById("room-input"),
+    token: document.getElementById('token-input'),
     slot: document.getElementById("slot-select"),
     join: document.getElementById("join"),
     play: document.getElementById("play"),
@@ -43,6 +44,9 @@
   }
 
   let socket = null;
+  const pairing = new URLSearchParams(location.hash.slice(1));
+  els.room.value = pairing.get('room') ?? '';
+  els.token.value = pairing.get('token') ?? '';
 
   els.form.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -60,7 +64,7 @@
     socket.addEventListener("open", () => {
       state.connected = true;
       badge(els.connection, "connecting", "warn");
-      socket.send(JSON.stringify({ v: 1, type: "hello", role: "controller", room, slot, name: `phone-${slot}` }));
+      socket.send(JSON.stringify({ v: 1, type: "hello", role: "controller", room, token: els.token.value.trim(), slot, name: `phone-${slot}` }));
     });
     socket.addEventListener("message", (event) => handle(JSON.parse(event.data)));
     socket.addEventListener("close", () => {

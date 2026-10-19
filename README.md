@@ -66,16 +66,16 @@ Rejected frames carry `{type:"error", code, message}`. Oversized frames (>2 KB),
 Text commentary is always emitted for points, long rallies, nets and outs. Audio requires a server-side key:
 
 ```sh
-GEMINI_API_KEY=... npm start
+ENABLE_TTS=1 GEMINI_API_KEY=... npm start
 ```
 
-Without a key the server reports `commentary.enabled=false` and the reason in `/healthz`; **no provider call is attempted** (covered by a test with a fake fetch). With a key, one bounded request is made per event and failures are reported as `tts_*` without blocking the match. No API key is shipped, and no audio was generated during verification.
+Without explicit `ENABLE_TTS=1` and a key the server reports `commentary.enabled=false` and the reason in `/healthz`; **no provider call is attempted** (covered by a test with a fake fetch). With a key, one bounded request is made per event and failures are reported as `tts_*` without blocking the match. No API key is shipped, and no audio was generated during verification.
 
 ## Verification
 
 | Check | Result |
 | --- | --- |
-| `npm test` | 21 passed |
+| `npm test` | 26 passed |
 | Deterministic replay | two runs of 600 steps produce identical snapshots |
 | Pairing | host + two controllers join; duplicate slot rejected |
 | Disconnect / stale | presence updates; host close closes the room |
@@ -95,7 +95,7 @@ The load probe includes two simulated controllers on loopback and says nothing a
 - Motion input is raw `DeviceOrientation`; there is no magnetometer fusion, drift correction or racket calibration beyond a neutral-pose offset.
 - Physics is a teaching model: no spin, no ball deformation, no rally-specific aerodynamics, no line-judge challenge.
 - The viewer draws the ball larger than life for visibility.
-- No authentication beyond the room code; anyone with the code can take a free slot. Run it on a trusted LAN.
+- Controllers require both the room code and a random 128-bit pairing token. Protect the controller URL/token; this is local pairing, not a public authentication service.
 - No HTTPS setup is bundled, so iOS motion permission will not appear on plain HTTP.
 - No TURN/STUN, no reconnection token, no persistent scores or match history.
 - Browser QA uses touch input; real phone motion events were not exercised in CI.
@@ -105,3 +105,15 @@ The load probe includes two simulated controllers on loopback and says nothing a
 All code and the court model are original for this project. Gemini TTS is optional and disabled by default. No provider response, audio file or API key is included.
 
 MIT — see [LICENSE](LICENSE).
+
+## Crosscheck corrections, 2026-10-19
+
+- CLI now binds `127.0.0.1` by default. Phone access requires an intentional LAN bind, for example `HOST=0.0.0.0`, and a trusted local network. HTTPS remains necessary for phone motion sensors.
+- The court displays a 128-bit pairing token and a controller link using a URL fragment. Room codes alone do not grant controller access. Tokens never appear in `/healthz`.
+- Cross-origin browser WebSocket upgrades are rejected. Integer sequence numbers and increasing motion timestamps are required.
+- Swing rate uses measured sample time instead of assuming every sample arrives after 45 ms. Wraparound uses the shortest angular difference.
+- Ambient API credentials cannot activate paid TTS. Explicit opt-in and a key are both required. One request may be in flight, with at most ten requests per server session. Provider traffic was not used during this audit.
+- The optional adapter follows the [official Generate Content TTS format](https://ai.google.dev/gemini-api/docs/generate-content/speech-generation). `GEMINI_TTS_MODEL` can select an available model. The default is `gemini-3.8-flash-tts`. API credentials use the request header, not the URL.
+- Audio receipt is surfaced honestly. Automatic audio playback is not implemented; text commentary remains the verified path.
+
+The earlier screenshot/load-probe values describe version 0.1.0. Current pairing/security regressions and local UI checks are recorded separately. No hardware sensor or external provider latency claim is made.

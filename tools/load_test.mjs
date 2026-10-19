@@ -24,13 +24,14 @@ const host = connect();
 await host.open;
 host.socket.send(JSON.stringify({ v: 1, type: "hello", role: "host", name: "court" }));
 await new Promise((resolve) => setTimeout(resolve, 150));
-const room = host.messages.find((entry) => entry.message.type === "room").message.code;
+const pairing = host.messages.find((entry) => entry.message.type === "room").message;
+const room = pairing.code;
 
 const phones = [];
 for (const slot of [1, 2]) {
   const phone = connect();
   await phone.open;
-  phone.socket.send(JSON.stringify({ v: 1, type: "hello", role: "controller", room, slot, name: `sim-${slot}` }));
+  phone.socket.send(JSON.stringify({ v: 1, type: "hello", role: "controller", room, token: pairing.token, slot, name: `sim-${slot}` }));
   phones.push(phone);
 }
 await new Promise((resolve) => setTimeout(resolve, 300));
