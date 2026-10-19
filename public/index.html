@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Motion Rally — court</title>
+<meta name="description" content="Server-authoritative multi-device motion rally. Two phones as rackets, a 3D court, fixed-step physics." />
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+<canvas id="court" aria-label="3D tennis court with ball and two rackets"></canvas>
+
+<div class="hud top-left">
+  <div class="panel">
+    <div class="eyebrow">WebSocket bridge · fixed 120 Hz physics</div>
+    <h1>Motion rally <span>— phone rackets</span></h1>
+    <div class="badges">
+      <span class="badge" id="connection">connecting</span>
+      <span class="badge" id="presence">0 / 2 phones</span>
+      <span class="badge" id="tts">commentary text</span>
+    </div>
+    <div class="room"><code id="room-code">----</code><span>room code</span></div>
+    <div class="small">Open <b>/controller</b> on two phones, enter this code, then tilt or use touch.</div>
+  </div>
+</div>
+
+<div class="hud scoreboard">
+  <div class="panel">
+    <div class="score-row"><span>Player 1</span><b id="score-1">0</b></div>
+    <div class="player-row" id="player-1"><span><i class="dot"></i><span id="name-1">waiting</span></span><span id="state-1">—</span></div>
+    <div class="score-row" style="margin-top:6px"><span>Player 2</span><b id="score-2">0</b></div>
+    <div class="player-row" id="player-2"><span><i class="dot"></i><span id="name-2">waiting</span></span><span id="state-2">—</span></div>
+  </div>
+</div>
+
+<div class="hud center">
+  <div class="phase" id="phase">waiting for players</div>
+  <div class="rally" id="rally">Rally 0</div>
+</div>
+
+<div class="hud commentary">
+  <div class="panel">
+    <h2>Play-by-play</h2>
+    <ul id="commentary"><li>Waiting for the first point…</li></ul>
+  </div>
+</div>
+
+<div class="hint">Drag to orbit · snapshots arrive at 20 Hz, physics runs at 120 Hz</div>
+
+<script src="/three.min.js"></script>
+<script src="/host.js"></script>
+</body>
+</html>

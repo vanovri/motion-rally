@@ -1,0 +1,22 @@
+{
+  "name": "motion-rally",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Server-authoritative multi-device motion rally: phones as rackets over WebSocket, fixed-step physics, optional Gemini TTS commentary.",
+  "type": "module",
+  "scripts": {
+    "start": "node server/server.mjs",
+    "test": "node --test --test-timeout=15000 tests/rally.test.mjs",
+    "qa": "node tools/browser_qa.mjs",
+    "load": "node tools/load_test.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "ws": "8.22.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.64.1"
+  }
+}

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Motion Rally — phone controller</title>
+<meta name="description" content="Phone racket: motion sensors when the context allows it, touch fallback always." />
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body class="controller">
+<div class="controller-card">
+  <div class="panel">
+    <div class="eyebrow">Motion rally · phone racket</div>
+    <h1 style="font-size:18px;margin-top:3px">Join a court</h1>
+    <div class="badges" style="margin-top:8px">
+      <span class="badge" id="connection">offline</span>
+      <span class="badge" id="context">checking context</span>
+    </div>
+
+    <form id="join-form">
+      <div class="field">
+        <label for="room-input">Room code</label>
+        <input id="room-input" inputmode="numeric" pattern="\d{4}" maxlength="4" placeholder="1234" autocomplete="off" required />
+      </div>
+      <div class="field">
+        <label for="slot-select">Player slot</label>
+        <select id="slot-select">
+          <option value="1">Player 1 (near side)</option>
+          <option value="2">Player 2 (far side)</option>
+        </select>
+      </div>
+      <button id="join" type="submit">Join court</button>
+    </form>
+
+    <div id="play" style="display:none">
+      <button id="motion-btn" type="button">Enable motion sensors</button>
+      <button id="calibrate" type="button" class="secondary" disabled>Calibrate neutral pose</button>
+      <button id="touch-toggle" type="button" class="secondary">Use touch controls instead</button>
+      <div id="touch-pad"><div><b>Drag</b>Tilt the racket · quick tap to swing</div></div>
+      <div class="readout">
+        <div>β <span id="beta">–</span>°</div>
+        <div>γ <span id="gamma">–</span>°</div>
+        <div>swing <span id="swing">–</span></div>
+      </div>
+      <div class="status" id="status">Joined. Enable motion or use touch.</div>
+    </div>
+
+    <div class="small" id="secure-note">Motion sensors require a secure context (HTTPS or localhost). Over plain HTTP on a LAN, use touch controls.</div>
+  </div>
+</div>
+<script src="/controller.js"></script>
+</body>
+</html>

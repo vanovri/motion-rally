@@ -1,0 +1,84 @@
+{
+  "measuredAt": "2026-10-19T10:59:23.894Z",
+  "platform": "win32 x64",
+  "node": "v24.20.0",
+  "durationSeconds": 6,
+  "inputRateHz": 30,
+  "controllers": 2,
+  "snapshotsReceived": 107,
+  "snapshotGapMs": {
+    "p50": 62.6,
+    "p95": 70.1,
+    "max": 85.5
+  },
+  "server": {
+    "ticks": 324,
+    "tickMs": {
+      "min": 16.222,
+      "max": 54.937,
+      "avg": 21.233
+    },
+    "snapshots": 107,
+    "messagesIn": 341,
+    "messagesOut": 342,
+    "rejected": 0,
+    "rejections": {},
+    "rooms": 1,
+    "connections": 3
+  },
+  "latestState": {
+    "type": "state",
+    "tick": 812,
+    "time": 6.7667,
+    "phase": "point",
+    "server": 1,
+    "rally": 0,
+    "score": {
+      "1": 0,
+      "2": 5
+    },
+    "ball": {
+      "x": 0.6169,
+      "y": 1.7071,
+      "z": 11.2367,
+      "vx": 1.1657,
+      "vy": 2.3526,
+      "vz": 9.3099
+    },
+    "paddles": {
+      "1": {
+        "x": 0.8871,
+        "swing": 0.0228,
+        "connected": true
+      },
+      "2": {
+        "x": -0.3182,
+        "swing": 0.0259,
+        "connected": true
+      }
+    },
+    "stats": {
+      "aces": 1,
+      "longRallies": 0,
+      "net": 0,
+      "out": 0
+    },
+    "slots": [
+      {
+        "slot": 1,
+        "name": "sim-1",
+        "connected": true,
+        "stale": false,
+        "calibrated": false
+      },
+      {
+        "slot": 2,
+        "name": "sim-2",
+        "connected": true,
+        "stale": false,
+        "calibrated": false
+      }
+    ]
+  },
+  "note": "Single-machine local measurement; includes simulated sensors on loopback. Not a network or device latency guarantee."
+}

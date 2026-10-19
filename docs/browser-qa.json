@@ -1,0 +1,77 @@
+{
+  "room": "3441",
+  "host": {
+    "connected": true,
+    "slots": [
+      {
+        "slot": 1,
+        "connected": true,
+        "name": "phone-1"
+      },
+      {
+        "slot": 2,
+        "connected": true,
+        "name": "phone-2"
+      }
+    ],
+    "score": {
+      "1": 0,
+      "2": 5
+    },
+    "phase": "point",
+    "ball": {
+      "x": 0.6169,
+      "y": 1.7071,
+      "z": 11.2367,
+      "vx": 1.1657,
+      "vy": 2.3526,
+      "vz": 9.3099
+    },
+    "paddles": {
+      "1": {
+        "x": 0.8,
+        "swing": 0,
+        "connected": true
+      },
+      "2": {
+        "x": -0.6,
+        "swing": 0,
+        "connected": true
+      }
+    },
+    "commentaryEntries": 5
+  },
+  "controller": {
+    "joined": true,
+    "mode": "touch",
+    "slot": 1,
+    "calibrated": false
+  },
+  "server": {
+    "rooms": 1,
+    "stats": {
+      "ticks": 550,
+      "tickMs": {
+        "min": 16.125,
+        "max": 132.514,
+        "avg": 27.462
+      },
+      "snapshots": 160,
+      "messagesIn": 477,
+      "messagesOut": 492,
+      "rejected": 0,
+      "rejections": {},
+      "rooms": 1,
+      "connections": 3
+    },
+    "commentary": {
+      "enabled": false,
+      "reason": "GEMINI_API_KEY not set"
+    }
+  },
+  "consoleErrors": [],
+  "screenshots": [
+    "preview-host.png",
+    "preview-controller.png"
+  ]
+}
