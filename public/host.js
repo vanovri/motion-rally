@@ -76,7 +76,7 @@
     state.slots = snapshot.slots ?? state.slots;
     els.score1.textContent = String(snapshot.score[1]);
     els.score2.textContent = String(snapshot.score[2]);
-    els.phase.textContent = snapshot.phase === "point" ? "point" : snapshot.phase === "serve" ? "serve" : "rally";
+    els.phase.textContent = snapshot.waiting ? 'waiting for two players' : snapshot.phase === "point" ? "point" : snapshot.phase === "serve" ? "serve" : "rally";
     els.rally.textContent = `Rally ${snapshot.rally}`;
     applySlots(state.slots);
     pushFrame(snapshot);
@@ -157,11 +157,15 @@
     const lineMaterial = new THREE.LineBasicMaterial({ color: 0xd7e5ef, transparent: true, opacity: 0.85 });
     const lines = [];
     const w = 8.23 / 2, l = 23.77 / 2;
-    lines.push(-w, 0.005, -l, w, 0.005, -l, w, 0.005, l, -w, 0.005, l, -w, 0.005, -l);
+    const segment = (x1, z1, x2, z2) => lines.push(x1, 0.005, z1, x2, 0.005, z2);
+    segment(-w, -l, w, -l);
+    segment(w, -l, w, l);
+    segment(w, l, -w, l);
+    segment(-w, l, -w, -l);
     lines.push(-w, 0.005, 0, w, 0.005, 0); // net line
     for (const z of [-6.4, 6.4]) lines.push(-w, 0.005, z, w, 0.005, z);
     lines.push(0, 0.005, -6.4, 0, 0.005, 6.4);
-    for (const z of [-6.4, 6.4]) lines.push(0, 0.005, z, 0, 0.005, z < 0 ? -l : l);
+    for (const z of [-l, l]) segment(0, z, 0, z + (z < 0 ? 0.2 : -0.2));
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.Float32BufferAttribute(lines, 3));
     scene.add(new THREE.LineSegments(geometry, lineMaterial));

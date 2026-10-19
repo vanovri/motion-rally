@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const VERSION = "0.2.0";
+const VERSION = "0.2.1";
 const zipPath = resolve(root, "dist", `motion-rally-v${VERSION}.zip`);
 const sumsPath = resolve(root, "dist", `SHA256SUMS-v${VERSION}.txt`);
 

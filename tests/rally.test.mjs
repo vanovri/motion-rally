@@ -379,3 +379,13 @@ test("TTS request count is bounded per session without real provider calls", asy
   assert.equal((await commentary.speak('two')).reason,'tts_session_limit');
   assert.equal(calls,1);
 });
+
+
+test("an unpaired court waits without advancing score or simulation", async(t) => {
+  const server = await startServer({port:0}); t.after(() => server.close());
+  const host=connect(server.url); await host.opened; host.send({type:'hello',role:'host'});
+  await host.waitFor('room');
+  const state=await host.waitFor('state');
+  assert.equal(state.waiting,true); assert.equal(state.tick,0);
+  assert.deepEqual(state.score,{'1':0,'2':0});
+});

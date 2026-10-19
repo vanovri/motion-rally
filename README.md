@@ -75,7 +75,7 @@ Without explicit `ENABLE_TTS=1` and a key the server reports `commentary.enabled
 
 | Check | Result |
 | --- | --- |
-| `npm test` | 27 passed |
+| `npm test` | 28 passed |
 | Deterministic replay | two runs of 600 steps produce identical snapshots |
 | Pairing | host + two controllers join; duplicate slot rejected |
 | Disconnect / stale | presence updates; host close closes the room |
@@ -117,3 +117,7 @@ MIT — see [LICENSE](LICENSE).
 - Audio receipt is surfaced honestly. Automatic audio playback is not implemented; text commentary remains the verified path.
 
 The earlier screenshot/load-probe values describe version 0.1.0. Current pairing/security regressions and local UI checks are recorded separately. No hardware sensor or external provider latency claim is made.
+
+## Visual correction in 0.2.1
+
+Court perimeter vertices are emitted as explicit segment pairs, removing accidental diagonal connections. The server waits for both controller slots before advancing match physics or scoring. The UI states that it is waiting. Browser screenshots were refreshed after these corrections.

@@ -379,11 +379,12 @@ export async function startServer({ port = 0, host = "127.0.0.1", commentary = n
     stats.tickMs.max = Math.max(stats.tickMs.max, ms);
     stats.tickMs.total += ms;
     for (const room of rooms.values()) {
-      const events = room.match.step(delta);
+      const ready = Boolean(room.controllers[1] && room.controllers[2]);
+      const events = ready ? room.match.step(delta) : [];
       for (const event of events) room.handleEvent(event);
       snapshotCounter += 1;
       if (snapshotCounter % 3 === 0) {
-        const snapshot = room.match.snapshot();
+        const snapshot = { ...room.match.snapshot(), waiting: !ready };
         room.broadcast({ type: "state", ...snapshot, slots: room.slots() });
         stats.snapshots += 1;
       }
