@@ -27,11 +27,13 @@ async function openPage(path, viewport) {
 const host = await openPage("/", { width: 1440, height: 900 });
 await host.waitForFunction(() => /^\d{4}$/.test(document.getElementById("room-code").textContent), null, { timeout: 8000 });
 const room = (await host.locator("#room-code").textContent()).trim();
+const token = (await host.locator("#pairing-token").textContent()).trim();
 
 const controllers = [];
 for (const slot of [1, 2]) {
   const page = await openPage("/controller", { width: 390, height: 844 });
   await page.fill("#room-input", room);
+  await page.fill("#token-input", token);
   await page.selectOption("#slot-select", String(slot));
   await page.click("#join");
   await page.waitForFunction(() => document.getElementById("connection").textContent.includes("joined"), null, { timeout: 8000 });

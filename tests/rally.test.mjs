@@ -368,3 +368,14 @@ test("motion timestamps must increase without corrupting accepted state", async(
   phone.send({type:'input',seq:2,timestamp:99,beta:0,gamma:0});
   assert.equal((await phone.waitFor('error')).code,'stale_timestamp');
 });
+
+
+test("TTS request count is bounded per session without real provider calls", async () => {
+  let calls=0;
+  const commentary=createCommentary({enabled:true,apiKey:'synthetic-key',maxRequests:1,fetchImpl:async()=>{
+    calls++; return {ok:false,status:503};
+  }});
+  await commentary.speak('one');
+  assert.equal((await commentary.speak('two')).reason,'tts_session_limit');
+  assert.equal(calls,1);
+});

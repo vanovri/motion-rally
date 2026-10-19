@@ -75,7 +75,7 @@ Without explicit `ENABLE_TTS=1` and a key the server reports `commentary.enabled
 
 | Check | Result |
 | --- | --- |
-| `npm test` | 26 passed |
+| `npm test` | 27 passed |
 | Deterministic replay | two runs of 600 steps produce identical snapshots |
 | Pairing | host + two controllers join; duplicate slot rejected |
 | Disconnect / stale | presence updates; host close closes the room |
