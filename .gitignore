@@ -4,3 +4,6 @@ node_modules/
 Thumbs.db
 test-out.txt
 dist/
+
+graphify-out/
+
